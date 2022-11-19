@@ -2,9 +2,13 @@ package hello.jdbc.repository;
 
 import hello.jdbc.domain.Member;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.NoSuchElementException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 class MemberRepositoryV0Test {
@@ -19,5 +23,13 @@ class MemberRepositoryV0Test {
         Member findMember = repository.findById(member.getMemberId());
         log.info("findMember={}", findMember);
         assertThat(findMember.getMemberId()).isEqualTo(member.getMemberId());
+
+        repository.update(member.getMemberId(), 20000);
+        Member updatedMember = repository.findById(member.getMemberId());
+        log.info("updatedMember={}", updatedMember);
+        assertThat(updatedMember.getMoney()).isEqualTo(20000);
+
+        repository.delete(member.getMemberId());
+        assertThrows(NoSuchElementException.class, () -> repository.findById(member.getMemberId()));
     }
 }
