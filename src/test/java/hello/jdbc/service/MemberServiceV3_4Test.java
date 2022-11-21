@@ -2,38 +2,69 @@ package hello.jdbc.service;
 
 import hello.jdbc.domain.Member;
 import hello.jdbc.repository.MemberRepositoryV3;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-import static hello.jdbc.connection.ConnectionConst.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
-class MemberServiceV3_1Test {
+@SpringBootTest
+class MemberServiceV3_4Test {
 
     public static final String MEMBER_A = "memberA";
     public static final String MEMBER_B = "memberB";
     public static final String MEMBER_EX = "ex";
 
+    @Autowired
     private MemberRepositoryV3 memberRepository;
-    private MemberServiceV3_1 memberService;
 
-    @BeforeEach
-    void before() {
-        DataSource dataSource = new DriverManagerDataSource(URL, USERNAME, PASSWORD);
-        PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
-        memberRepository = new MemberRepositoryV3(dataSource);
-        memberService = new MemberServiceV3_1(transactionManager, memberRepository);
+    @Autowired
+    private MemberServiceV3_3 memberService;
+
+    @Autowired
+    private AnnotationConfigApplicationContext ac;
+
+    @TestConfiguration
+    @RequiredArgsConstructor
+    static class TestConfig {
+
+        private final DataSource dataSource;
+
+        private final PlatformTransactionManager transactionManager;
+
+        @Bean
+        MemberRepositoryV3 memberRepository() {
+            return new MemberRepositoryV3(dataSource);
+        }
+
+        @Bean
+        MemberServiceV3_3 memberService() {
+            return new MemberServiceV3_3(memberRepository());
+        }
+    }
+
+    @Test
+    void printRegisteredBean() {
+        for (String beanDefinitionName : ac.getBeanDefinitionNames()) {
+            BeanDefinition beanDefinition = ac.getBeanDefinition(beanDefinitionName);
+            if(beanDefinition.getRole() == BeanDefinition.ROLE_APPLICATION) {
+                log.info("{}", ac.getBean(beanDefinitionName));
+            }
+        }
     }
 
     @Test
