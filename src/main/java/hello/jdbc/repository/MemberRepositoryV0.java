@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
  * JDBC - DriverManager 사용
  */
 @Slf4j
-public class MemberRepositoryV0 {
+public class MemberRepositoryV0 implements MemberRepositoryEx {
 
     public Member save(Member member) throws SQLException {
         String sql = "insert into member(member_id, money) values (?, ?)";
